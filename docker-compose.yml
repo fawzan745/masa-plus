@@ -1,0 +1,15 @@
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: masa_user
+      POSTGRES_PASSWORD: masa_pass
+      POSTGRES_DB: masa_plus
+    ports:
+      - "5432:5432"
+    volumes:
+      - masa_pg_data:/var/lib/postgresql/data
+
+volumes:
+  masa_pg_data:
