@@ -38,9 +38,16 @@ from hijri_converter import Gregorian
 ELONGATION_MIN_DEGREES = 8.0
 ALTITUDE_MIN_DEGREES = 5.0
 
-# Sampel titik bujur yang di-scan untuk mengecek kriteria "di mana pun di dunia".
-# Makin rapat (increment kecil) makin presisi tapi makin lambat.
+# Sampel titik bujur yang di-scan untuk mengecek kriteria "di mana pun di dunia" (PKG1).
 LONGITUDE_SAMPLES = range(-180, 181, 5)
+
+# Rentang bujur perkiraan wilayah daratan Benua Amerika, untuk PKG2.
+AMERICAS_LONGITUDE_RANGE = range(-170, -29, 5)
+
+# Koordinat referensi Selandia Baru untuk cek "ijtimak sebelum fajar" (PKG2).
+NZ_LATITUDE = -41.28
+NZ_LONGITUDE = 174.77
+FAJR_ANGLE = 18.0
 
 
 @dataclass
@@ -59,10 +66,9 @@ HIJRI_MONTH_NAMES = [
 ]
 
 
-def _criteria_met_anywhere(conjunction: ephem.Date) -> bool:
-    """Cek apakah kriteria PKG (elongasi >=8 & tinggi hilal >=5) terpenuhi
-    di titik bujur mana pun, saat matahari terbenam di titik itu, SEBELUM
-    pukul 24:00 UT pada hari konjungsi terjadi."""
+def _pkg1_criteria_met(conjunction: ephem.Date) -> bool:
+    """PKG 1: kriteria terpenuhi di mana pun di dunia, SEBELUM pukul 24:00 UT
+    pada hari konjungsi."""
 
     conjunction_dt = ephem.Date(conjunction).datetime()
     next_midnight_ut = datetime(conjunction_dt.year, conjunction_dt.month, conjunction_dt.day) + timedelta(days=1)
@@ -99,6 +105,70 @@ def _criteria_met_anywhere(conjunction: ephem.Date) -> bool:
     return False
 
 
+def _pkg2_criteria_met(conjunction: ephem.Date) -> bool:
+    """PKG 2: berlaku kalau PKG1 gagal. Kriteria terpenuhi (tinggi hilal >=5,
+    elongasi >=8) SETELAH pukul 00:00 UT, DENGAN SYARAT: (a) lokasi
+    terpenuhinya ada di wilayah daratan Amerika, DAN (b) ijtimak terjadi
+    sebelum fajar di Selandia Baru."""
+
+    # Syarat (b): ijtimak harus terjadi sebelum fajar di Selandia Baru
+    # pada hari (UT) yang sama dengan hari konjungsi.
+    conj_dt = ephem.Date(conjunction).datetime()
+    day_start = ephem.Date(datetime(conj_dt.year, conj_dt.month, conj_dt.day))
+
+    nz_obs = ephem.Observer()
+    nz_obs.lat = str(NZ_LATITUDE)
+    nz_obs.lon = str(NZ_LONGITUDE)
+    nz_obs.elevation = 0
+    nz_obs.pressure = 0
+    nz_obs.horizon = str(-FAJR_ANGLE)
+    nz_obs.date = day_start
+
+    try:
+        nz_fajr = nz_obs.next_rising(ephem.Sun(), use_center=True)
+    except (ephem.AlwaysUpError, ephem.NeverUpError):
+        return False
+
+    if not (conjunction < nz_fajr):
+        return False  # syarat (b) gagal, tidak perlu cek syarat (a)
+
+    # Syarat (a): tinggi & elongasi hilal terpenuhi di wilayah daratan Amerika,
+    # memakai waktu terbenam matahari terdekat setelah konjungsi (boleh lewat
+    # tengah malam UT, berbeda dari PKG1).
+    for lon in AMERICAS_LONGITUDE_RANGE:
+        obs = ephem.Observer()
+        obs.lat = "0"
+        obs.lon = str(lon)
+        obs.elevation = 0
+        obs.pressure = 0
+        obs.date = conjunction
+
+        sun = ephem.Sun()
+        try:
+            sunset = obs.next_setting(sun)
+        except (ephem.AlwaysUpError, ephem.NeverUpError):
+            continue
+
+        obs.date = sunset
+        moon = ephem.Moon()
+        sun.compute(obs)
+        moon.compute(obs)
+
+        elongation = math.degrees(ephem.separation(sun, moon))
+        moon_altitude = math.degrees(moon.alt)
+
+        if elongation >= ELONGATION_MIN_DEGREES and moon_altitude >= ALTITUDE_MIN_DEGREES:
+            return True
+
+    return False
+
+
+def _criteria_met_anywhere(conjunction: ephem.Date) -> bool:
+    """Gabungan PKG1 dan PKG2 sesuai urutan resmi KHGT: PKG1 dicek dulu,
+    kalau gagal baru PKG2 (penyelarasan)."""
+    return _pkg1_criteria_met(conjunction) or _pkg2_criteria_met(conjunction)
+
+
 def _find_month_start(approx_date: date) -> date:
     """Mencari tanggal 1 Hijriah (versi Masehi) untuk bulan yang memuat
     approx_date, berdasarkan kriteria KHGT."""
@@ -112,6 +182,57 @@ def _find_month_start(approx_date: date) -> date:
         return conjunction_date + timedelta(days=1)
     else:
         return conjunction_date + timedelta(days=2)
+
+
+def get_year_calendar(gregorian_year: int) -> list[HijriDate]:
+    """Mengembalikan daftar semua awal bulan Hijriah yang jatuh dalam satu
+    tahun Masehi tertentu, berguna untuk validasi/perbandingan menyeluruh
+    terhadap kalender resmi (mis. aplikasi MASA)."""
+
+    year_start = ephem.Date(f"{gregorian_year}/01/01")
+    year_end = ephem.Date(f"{gregorian_year + 1}/01/01")
+
+    conjunction = ephem.previous_new_moon(year_start)
+    month_starts: list[date] = []
+
+    while True:
+        conjunction = ephem.next_new_moon(conjunction)
+        if conjunction >= year_end:
+            break
+
+        conjunction_date = ephem.Date(conjunction).datetime().date()
+        if _criteria_met_anywhere(conjunction):
+            month_start = conjunction_date + timedelta(days=1)
+        else:
+            month_start = conjunction_date + timedelta(days=2)
+        month_starts.append(month_start)
+
+    if not month_starts:
+        return []
+
+    # Ambil baseline nomor tahun/bulan HANYA dari bulan pertama, lalu hitung
+    # maju berurutan untuk bulan-bulan berikutnya. Ini menghindari label
+    # ganda/salah akibat baseline tabular yang kadang geser di titik tertentu.
+    first = month_starts[0]
+    baseline = Gregorian(first.year, first.month, first.day).to_hijri()
+    year, month = baseline.year, baseline.month
+
+    results: list[HijriDate] = []
+    for i, month_start in enumerate(month_starts):
+        if i > 0:
+            month += 1
+            if month > 12:
+                month = 1
+                year += 1
+        results.append(HijriDate(
+            year=year,
+            month=month,
+            month_name=HIJRI_MONTH_NAMES[month - 1],
+            day=1,
+            gregorian_month_start=month_start,
+        ))
+
+    return results
 
 
 def gregorian_to_hijri(target_date: date) -> HijriDate:

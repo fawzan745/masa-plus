@@ -3,8 +3,8 @@ from datetime import date as date_type
 
 from fastapi import APIRouter, Query
 
-from app.schemas.hijri import HijriDateResponse, FastingItem, FastingCalendarDay
-from app.services.hijri_calendar import gregorian_to_hijri
+from app.schemas.hijri import HijriDateResponse, FastingItem, FastingCalendarDay, HijriYearCalendarItem
+from app.services.hijri_calendar import gregorian_to_hijri, get_year_calendar
 from app.services.fasting_calendar import get_fasting_info
 
 router = APIRouter(tags=["hijri-calendar"])
@@ -30,6 +30,24 @@ def _build_hijri_response(d: date_type) -> HijriDateResponse:
 async def get_hijri_date(target_date: date_type = Query(default=None)):
     d = target_date or date_type.today()
     return _build_hijri_response(d)
+
+
+@router.get("/hijri-calendar/year", response_model=list[HijriYearCalendarItem])
+async def get_hijri_year_calendar(
+    year: int = Query(default=None, description="Tahun Masehi, default: tahun sekarang"),
+):
+    """Daftar semua pergantian bulan Hijriah dalam satu tahun Masehi —
+    cocok untuk validasi/perbandingan menyeluruh terhadap kalender resmi."""
+    y = year or date_type.today().year
+    calendar_items = get_year_calendar(y)
+
+    return [
+        HijriYearCalendarItem(
+            hijriah=f"1 {h.month_name} {h.year} H",
+            awal_bulan_masehi=h.gregorian_month_start.isoformat(),
+        )
+        for h in calendar_items
+    ]
 
 
 @router.get("/fasting-calendar", response_model=list[FastingCalendarDay])

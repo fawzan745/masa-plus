@@ -25,6 +25,11 @@ class HijriDateResponse(BaseModel):
     )
 
 
+class HijriYearCalendarItem(BaseModel):
+    hijriah: str
+    awal_bulan_masehi: str
+
+
 class FastingCalendarDay(BaseModel):
     tanggal_masehi: str
     hijriah: str
