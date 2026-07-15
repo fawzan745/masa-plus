@@ -12,14 +12,20 @@ mulai punya banyak perubahan skema, sebaiknya pindah ke Alembic
 
 import asyncio
 
+from sqlalchemy import text
+
 from app.db.database import engine, Base
 from app.models.user import User  # noqa: F401 -- import supaya modelnya terdaftar ke Base
 from app.models.doa import Doa  # noqa: F401 -- import supaya modelnya terdaftar ke Base
 from app.models.ibadah_log import IbadahLog  # noqa: F401 -- import supaya modelnya terdaftar ke Base
+from app.models.quran_ayat import QuranAyat  # noqa: F401 -- import supaya modelnya terdaftar ke Base
+from app.models.chat_message import ChatMessage  # noqa: F401 -- import supaya modelnya terdaftar ke Base
 
 
 async def create_tables():
     async with engine.begin() as conn:
+        # Aktifkan ekstensi pgvector dulu (dibutuhkan kolom Vector di QuranAyat)
+        await conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
         await conn.run_sync(Base.metadata.create_all)
     print("Semua tabel berhasil dibuat.")
 
