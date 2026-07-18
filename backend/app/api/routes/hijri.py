@@ -50,6 +50,34 @@ async def get_hijri_year_calendar(
     ]
 
 
+@router.get("/hijri-calendar/month", response_model=list[FastingCalendarDay])
+async def get_hijri_month_calendar(
+    year: int = Query(default=None, description="Tahun Masehi, default: tahun sekarang"),
+    month: int = Query(default=None, ge=1, le=12, description="Bulan Masehi (1-12), default: bulan sekarang"),
+):
+    """Tanggal Hijriah untuk SETIAP hari dalam 1 bulan Masehi (bukan cuma
+    yang ada anjuran puasa) -- dipakai untuk tampilan grid kalender penuh."""
+    today = date_type.today()
+    y = year or today.year
+    m = month or today.month
+
+    days_in_month = calendar.monthrange(y, m)[1]
+    result: list[FastingCalendarDay] = []
+
+    for day_num in range(1, days_in_month + 1):
+        d = date_type(y, m, day_num)
+        hijri = gregorian_to_hijri(d)
+        puasa = get_fasting_info(hijri.month, hijri.day, d)
+
+        result.append(FastingCalendarDay(
+            tanggal_masehi=d.isoformat(),
+            hijriah=f"{hijri.day} {hijri.month_name} {hijri.year} H",
+            puasa=[FastingItem(nama=p.nama, jenis=p.jenis, keterangan=p.keterangan) for p in puasa],
+        ))
+
+    return result
+
+
 @router.get("/fasting-calendar", response_model=list[FastingCalendarDay])
 async def get_fasting_calendar(
     year: int = Query(default=None, description="Tahun Masehi, default: tahun sekarang"),

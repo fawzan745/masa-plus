@@ -1,19 +1,15 @@
-import { useEffect, useState } from "react";
-import { checkBackendHealth } from "./lib/api";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Dashboard from "./pages/Dashboard";
+import KalenderHijriah from "./pages/KalenderHijriah";
+import "./styles/tokens.css";
 
 export default function App() {
-  const [status, setStatus] = useState("Mengecek koneksi backend...");
-
-  useEffect(() => {
-    checkBackendHealth()
-      .then((data) => setStatus(`Backend terhubung: ${data.message}`))
-      .catch(() => setStatus("Backend belum terhubung. Pastikan sudah dijalankan."));
-  }, []);
-
   return (
-    <div style={{ fontFamily: "sans-serif", padding: "2rem" }}>
-      <h1>Masa Plus</h1>
-      <p>{status}</p>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/kalender" element={<KalenderHijriah />} />
+      </Routes>
+    </BrowserRouter>
   );
 }

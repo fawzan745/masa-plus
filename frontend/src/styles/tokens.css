@@ -1,0 +1,58 @@
+:root {
+  /* Biru khas Muhammadiyah -- warna papan nama Amal Usaha Muhammadiyah */
+  --color-primary: #0A4A8F;
+  --color-primary-dark: #073563;
+  --color-primary-light: #E8F0FA;
+
+  /* Aksen emas hangat - untuk highlight (Ayyamul Bidh, streak, dll) */
+  --color-accent: #BA7517;
+  --color-accent-light: #FAEEDA;
+
+  /* Latar & permukaan - dominan putih bersih */
+  --color-bg: #F5F8FC;
+  --color-surface: #FFFFFF;
+  --color-surface-muted: #EEF3F9;
+
+  /* Teks */
+  --color-text-primary: #14213D;
+  --color-text-secondary: #52627A;
+  --color-text-muted: #8B98AC;
+
+  /* Border */
+  --color-border: #DCE5F0;
+
+  /* Tipografi */
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-body: 'Inter', -apple-system, sans-serif;
+
+  /* Radius & spacing */
+  --radius-card: 20px;
+  --radius-control: 10px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  margin: 0;
+  min-height: 100vh;
+  width: 100%;
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3 {
+  font-family: var(--font-display);
+  font-weight: 500;
+  margin: 0;
+}
+
+button {
+  font-family: var(--font-body);
+}
