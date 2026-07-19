@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import AppHeader from "../components/AppHeader";
 import LocationPicker from "../components/LocationPicker";
 import PrayerTimesTable from "../components/PrayerTimesTable";
 import AyatOfDayCard from "../components/AyatOfDayCard";
@@ -8,21 +9,14 @@ import { getPrayerTimesRange, getHijriDate, getAyatOfTheDay } from "../lib/api";
 import { formatTanggalLengkap } from "../lib/tanggal";
 
 export default function Dashboard() {
-  const {
-    location,
-    loading: loadingLocation,
-    useCurrentLocation,
-    setManualLocation,
-  } = useLocation();
+  const { location, loading: loadingLocation, useCurrentLocation, setManualLocation } = useLocation();
   const [prayerData, setPrayerData] = useState(null);
   const [hijriData, setHijriData] = useState(null);
   const [ayatHariIni, setAyatHariIni] = useState(null);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    getAyatOfTheDay()
-      .then(setAyatHariIni)
-      .catch(() => {});
+    getAyatOfTheDay().then(setAyatHariIni).catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -31,11 +25,7 @@ export default function Dashboard() {
     async function loadData() {
       try {
         const [prayerRange, hijri] = await Promise.all([
-          getPrayerTimesRange({
-            latitude: location.latitude,
-            longitude: location.longitude,
-            days: 7,
-          }),
+          getPrayerTimesRange({ latitude: location.latitude, longitude: location.longitude, days: 7 }),
           getHijriDate(),
         ]);
         setPrayerData(prayerRange);
@@ -49,51 +39,21 @@ export default function Dashboard() {
   }, [location]);
 
   return (
-    <div
-      style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}
-    >
+    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
       {/* Navbar penuh selebar layar */}
-      <header
-        style={{
-          background: "var(--color-primary)",
-          padding: "1rem 1.5rem",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          flexWrap: "wrap",
-          gap: "1rem",
-        }}
-      >
-        <h1 style={{ fontSize: "1.4rem", color: "white" }}>Masa Plus</h1>
+      <AppHeader>
         <LocationPicker
           location={location}
           loading={loadingLocation}
           onUseCurrentLocation={useCurrentLocation}
           onSelectLocation={setManualLocation}
         />
-      </header>
+      </AppHeader>
 
-      <main
-        style={{
-          flex: 1,
-          maxWidth: "980px",
-          width: "100%",
-          margin: "0 auto",
-          padding: "2rem 1.5rem",
-        }}
-      >
+      <main style={{ flex: 1, maxWidth: "980px", width: "100%", margin: "0 auto", padding: "2rem 1.5rem" }}>
         {error && (
-          <div
-            style={{
-              background: "#FCEBEB",
-              color: "#A32D2D",
-              padding: "1rem",
-              borderRadius: "var(--radius-control)",
-              marginBottom: "1.5rem",
-            }}
-          >
-            Gagal memuat data: {error}. Pastikan backend jalan di
-            localhost:8000.
+          <div style={{ background: "#FCEBEB", color: "#A32D2D", padding: "1rem", borderRadius: "var(--radius-control)", marginBottom: "1.5rem" }}>
+            Gagal memuat data: {error}. Pastikan backend jalan di localhost:8000.
           </div>
         )}
 
@@ -113,16 +73,8 @@ export default function Dashboard() {
           }}
         >
           <div>
-            <p style={{ margin: 0, opacity: 0.85, fontSize: "0.85rem" }}>
-              {formatTanggalLengkap(new Date())}
-            </p>
-            <h2
-              style={{
-                fontSize: "1.5rem",
-                margin: "0.2rem 0 0",
-                color: "white",
-              }}
-            >
+            <p style={{ margin: 0, opacity: 0.85, fontSize: "0.85rem" }}>{formatTanggalLengkap(new Date())}</p>
+            <h2 style={{ fontSize: "1.5rem", margin: "0.2rem 0 0", color: "white" }}>
               {hijriData ? hijriData.hijriah : "Memuat..."}
             </h2>
           </div>
@@ -143,14 +95,7 @@ export default function Dashboard() {
             }}
           >
             Selengkapnya
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="white"
-              strokeWidth="2.5"
-            >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5">
               <path d="M9 18l6-6-6-6" />
             </svg>
           </Link>
@@ -165,13 +110,7 @@ export default function Dashboard() {
             border: "1px solid var(--color-border)",
           }}
         >
-          <h2
-            style={{
-              fontSize: "1.1rem",
-              color: "var(--color-primary)",
-              marginBottom: "1rem",
-            }}
-          >
+          <h2 style={{ fontSize: "1.1rem", color: "var(--color-text-primary)", marginBottom: "1rem" }}>
             Jadwal sholat 7 hari
           </h2>
           <PrayerTimesTable data={prayerData} />

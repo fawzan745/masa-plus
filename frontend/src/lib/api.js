@@ -76,6 +76,20 @@ export async function getAyatOfTheDay() {
   if (!res.ok) throw new Error("Gagal mengambil ayat hari ini");
   return res.json();
 }
+export async function getDoaKategori() {
+  const res = await fetch(`${API_BASE_URL}/doa/kategori`);
+  if (!res.ok) throw new Error("Gagal mengambil kategori doa");
+  return res.json();
+}
+
+export async function getDoaList(kategori = null) {
+  const url = new URL(`${API_BASE_URL}/doa`);
+  if (kategori) url.searchParams.set("kategori", kategori);
+
+  const res = await fetch(url);
+  if (!res.ok) throw new Error("Gagal mengambil daftar doa");
+  return res.json();
+}
 export async function getHijriMonthView(hijriYear, hijriMonth) {
   const url = new URL(`${API_BASE_URL}/hijri-calendar/hijri-month`);
   url.searchParams.set("hijri_year", hijriYear);

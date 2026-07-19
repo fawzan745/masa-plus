@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import AppHeader from "../components/AppHeader";
 import MonthCalendarGrid from "../components/MonthCalendarGrid";
 import DateModeSelector from "../components/DateModeSelector";
 import FastingDetailList from "../components/FastingDetailList";
@@ -73,18 +73,9 @@ export default function KalenderHijriah() {
     : (hijriMonth ? `${NAMA_BULAN_HIJRIAH[hijriMonth - 1]} ${hijriYear} H` : "Memuat...");
 
   return (
-    <div style={{ maxWidth: "980px", margin: "0 auto", padding: "2rem 1.5rem" }}>
-      <Link
-        to="/"
-        style={{
-          display: "inline-flex", alignItems: "center", gap: "0.4rem",
-          color: "var(--color-primary)", textDecoration: "none",
-          fontSize: "0.85rem", marginBottom: "1.5rem",
-        }}
-      >
-        ← Kembali ke Dashboard
-      </Link>
-
+    <div>
+      <AppHeader />
+      <div style={{ maxWidth: "980px", margin: "0 auto", padding: "2rem 1.5rem" }}>
       <h1 style={{ fontSize: "1.75rem", color: "var(--color-primary-dark)", marginBottom: "0.25rem" }}>
         Kalender Hijriah
       </h1>
@@ -124,6 +115,7 @@ export default function KalenderHijriah() {
           </h2>
           <FastingDetailList days={days} />
         </section>
+      </div>
       </div>
     </div>
   );
