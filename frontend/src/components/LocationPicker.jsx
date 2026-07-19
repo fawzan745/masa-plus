@@ -99,14 +99,14 @@ export default function LocationPicker({ location, loading, onUseCurrentLocation
 
           {mode === "search" && (
             <div style={{ padding: "0.75rem" }}>
-              <form onSubmit={handleSearch} style={{ display: "flex", gap: "0.4rem" }}>
+              <form onSubmit={handleSearch} style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
                 <input
                   autoFocus
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="Nama kota, mis. Gresik"
                   style={{
-                    flex: 1,
+                    width: "100%",
                     padding: "0.5rem 0.6rem",
                     border: "1px solid var(--color-border)",
                     borderRadius: "8px",
@@ -117,13 +117,15 @@ export default function LocationPicker({ location, loading, onUseCurrentLocation
                 <button
                   type="submit"
                   style={{
+                    width: "100%",
                     background: "var(--color-primary)",
                     color: "white",
                     border: "none",
                     borderRadius: "8px",
-                    padding: "0 0.9rem",
+                    padding: "0.5rem 0",
                     cursor: "pointer",
                     fontSize: "0.85rem",
+                    fontWeight: 500,
                   }}
                 >
                   Cari
