@@ -68,13 +68,14 @@ export default function LocationPicker({ location, loading, onUseCurrentLocation
           style={{
             position: "absolute",
             top: "calc(100% + 8px)",
-            left: 0,
+            right: 0,
             zIndex: 10,
             background: "var(--color-surface)",
             border: "1px solid var(--color-border)",
             borderRadius: "var(--radius-control)",
             boxShadow: "0 8px 24px rgba(20, 33, 61, 0.12)",
-            width: "280px",
+            width: "220px",
+            maxWidth: "calc(100vw - 32px)",
             overflow: "hidden",
           }}
         >

@@ -1,4 +1,4 @@
-import { NAMA_HARI, NAMA_BULAN } from "../lib/tanggal";
+import { NAMA_HARI, NAMA_BULAN, NAMA_BULAN_HIJRIAH } from "../lib/tanggal";
 
 const JENIS_DOT = {
   wajib: "var(--color-primary)",
@@ -10,7 +10,7 @@ function isHariIni(isoDate) {
   return isoDate === new Date().toISOString().slice(0, 10);
 }
 
-export default function MonthCalendarGrid({ year, month, days, onPrevMonth, onNextMonth }) {
+export default function MonthCalendarGrid({ headerLabel, days, primary = "masehi", onPrevMonth, onNextMonth }) {
   if (!days || days.length === 0) {
     return <p style={{ color: "var(--color-text-muted)", textAlign: "center", padding: "2rem 0" }}>Memuat kalender...</p>;
   }
@@ -22,11 +22,9 @@ export default function MonthCalendarGrid({ year, month, days, onPrevMonth, onNe
   return (
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
-        <button onClick={onPrevMonth} style={navBtnStyle} aria-label="Bulan sebelumnya">‹</button>
-        <h3 style={{ fontSize: "1rem", margin: 0 }}>
-          {NAMA_BULAN[month - 1]} {year}
-        </h3>
-        <button onClick={onNextMonth} style={navBtnStyle} aria-label="Bulan berikutnya">›</button>
+        <button onClick={onPrevMonth} style={navBtnStyle} aria-label="Sebelumnya">‹</button>
+        <h3 style={{ fontSize: "1rem", margin: 0 }}>{headerLabel}</h3>
+        <button onClick={onNextMonth} style={navBtnStyle} aria-label="Berikutnya">›</button>
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: "4px", marginBottom: "6px" }}>
@@ -41,33 +39,48 @@ export default function MonthCalendarGrid({ year, month, days, onPrevMonth, onNe
         {cells.map((day, i) => {
           if (!day) return <div key={`empty-${i}`} />;
 
-          const tanggalMasehi = new Date(day.tanggal_masehi + "T00:00:00").getDate();
-          const tanggalHijri = day.hijriah.split(" ")[0];
+          const gregDate = new Date(day.tanggal_masehi + "T00:00:00");
+          const gregDay = gregDate.getDate();
+          const gregMonthFull = NAMA_BULAN[gregDate.getMonth()];
+          const hijriDay = day.hijri_tanggal;
+          const hijriMonthFull = day.hijri_bulan;
+
+          const utama = primary === "hijriah"
+            ? { besar: hijriDay, kecil: `${gregDay} ${gregMonthFull}` }
+            : { besar: gregDay, kecil: `${hijriDay} ${hijriMonthFull}` };
+
           const today = isHariIni(day.tanggal_masehi);
 
           return (
             <div
               key={day.tanggal_masehi}
-              title={day.hijriah}
+              title={`${day.tanggal_masehi} -- ${day.hijriah}`}
               style={{
-                aspectRatio: "1",
+                minHeight: "76px",
                 borderRadius: "8px",
                 background: today ? "var(--color-primary)" : "var(--color-surface-muted)",
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
                 justifyContent: "center",
-                padding: "2px",
+                padding: "6px 3px",
               }}
             >
-              <span style={{ fontSize: "0.8rem", fontWeight: 600, color: today ? "white" : "var(--color-text-primary)" }}>
-                {tanggalMasehi}
+              <span style={{ fontSize: "0.85rem", fontWeight: 600, color: today ? "white" : "var(--color-text-primary)" }}>
+                {utama.besar}
               </span>
-              <span style={{ fontSize: "0.6rem", color: today ? "rgba(255,255,255,0.85)" : "var(--color-text-muted)" }}>
-                {tanggalHijri}
+              <span style={{
+                fontSize: "0.58rem",
+                marginTop: "5px",
+                color: today ? "rgba(255,255,255,0.85)" : "var(--color-text-muted)",
+                textAlign: "center",
+                lineHeight: 1.25,
+                wordBreak: "break-word",
+              }}>
+                {utama.kecil}
               </span>
               {day.puasa.length > 0 && (
-                <div style={{ display: "flex", gap: "2px", marginTop: "2px" }}>
+                <div style={{ display: "flex", gap: "2px", marginTop: "4px" }}>
                   {day.puasa.slice(0, 3).map((p, idx) => (
                     <span
                       key={idx}

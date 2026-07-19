@@ -62,6 +62,30 @@ export async function getFastingCalendar(year, month) {
   return res.json();
 }
 
+export async function getHijriYearStart(hijriYear) {
+  const url = new URL(`${API_BASE_URL}/hijri-calendar/hijri-year-start`);
+  url.searchParams.set("hijri_year", hijriYear);
+
+  const res = await fetch(url);
+  if (!res.ok) throw new Error("Gagal mengambil awal tahun Hijriah");
+  return res.json();
+}
+
+export async function getAyatOfTheDay() {
+  const res = await fetch(`${API_BASE_URL}/quran/ayat-of-the-day`);
+  if (!res.ok) throw new Error("Gagal mengambil ayat hari ini");
+  return res.json();
+}
+export async function getHijriMonthView(hijriYear, hijriMonth) {
+  const url = new URL(`${API_BASE_URL}/hijri-calendar/hijri-month`);
+  url.searchParams.set("hijri_year", hijriYear);
+  url.searchParams.set("hijri_month", hijriMonth);
+
+  const res = await fetch(url);
+  if (!res.ok) throw new Error("Gagal mengambil kalender bulan Hijriah");
+  return res.json();
+}
+
 export async function getHijriMonthCalendar(year, month) {
   const url = new URL(`${API_BASE_URL}/hijri-calendar/month`);
   if (year) url.searchParams.set("year", year);

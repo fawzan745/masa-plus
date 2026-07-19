@@ -1,40 +1,76 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import MonthCalendarGrid from "../components/MonthCalendarGrid";
-import { getHijriMonthCalendar, getHijriYearCalendar } from "../lib/api";
+import DateModeSelector from "../components/DateModeSelector";
+import FastingDetailList from "../components/FastingDetailList";
+import { getHijriMonthCalendar, getHijriMonthView, getHijriDate } from "../lib/api";
+import { NAMA_BULAN, NAMA_BULAN_HIJRIAH } from "../lib/tanggal";
 
 export default function KalenderHijriah() {
   const now = new Date();
-  const [year, setYear] = useState(now.getFullYear());
-  const [month, setMonth] = useState(now.getMonth() + 1);
+
+  // State terpisah untuk tiap sistem kalender -- supaya pindah-pindah mode
+  // tidak saling menimpa posisi terakhir masing-masing
+  const [gregYear, setGregYear] = useState(now.getFullYear());
+  const [gregMonth, setGregMonth] = useState(now.getMonth() + 1);
+  const [hijriYear, setHijriYear] = useState(null);
+  const [hijriMonth, setHijriMonth] = useState(null);
+
+  const [primary, setPrimary] = useState("masehi");
   const [days, setDays] = useState([]);
-  const [tahunCalendar, setTahunCalendar] = useState([]);
   const [error, setError] = useState(null);
+
+  // Begitu halaman dibuka, cari tahu bulan Hijriah hari ini -- jadi begitu
+  // user pindah ke mode Hijriah, otomatis mulai dari bulan berjalan
+  useEffect(() => {
+    getHijriDate()
+      .then((data) => {
+        setHijriYear(data.tahun);
+        setHijriMonth(data.bulan);
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     async function load() {
       try {
-        const data = await getHijriMonthCalendar(year, month);
-        setDays(data);
+        if (primary === "masehi") {
+          const data = await getHijriMonthCalendar(gregYear, gregMonth);
+          setDays(data);
+        } else if (hijriYear && hijriMonth) {
+          const data = await getHijriMonthView(hijriYear, hijriMonth);
+          setDays(data);
+        }
       } catch (err) {
         setError(err.message);
       }
     }
     load();
-  }, [year, month]);
+  }, [primary, gregYear, gregMonth, hijriYear, hijriMonth]);
 
-  useEffect(() => {
-    getHijriYearCalendar(year).then(setTahunCalendar).catch(() => {});
-  }, [year]);
+  function goPrev() {
+    if (primary === "masehi") {
+      if (gregMonth === 1) { setGregMonth(12); setGregYear(gregYear - 1); }
+      else setGregMonth(gregMonth - 1);
+    } else {
+      if (hijriMonth === 1) { setHijriMonth(12); setHijriYear(hijriYear - 1); }
+      else setHijriMonth(hijriMonth - 1);
+    }
+  }
 
-  function goPrevMonth() {
-    if (month === 1) { setMonth(12); setYear(year - 1); }
-    else setMonth(month - 1);
+  function goNext() {
+    if (primary === "masehi") {
+      if (gregMonth === 12) { setGregMonth(1); setGregYear(gregYear + 1); }
+      else setGregMonth(gregMonth + 1);
+    } else {
+      if (hijriMonth === 12) { setHijriMonth(1); setHijriYear(hijriYear + 1); }
+      else setHijriMonth(hijriMonth + 1);
+    }
   }
-  function goNextMonth() {
-    if (month === 12) { setMonth(1); setYear(year + 1); }
-    else setMonth(month + 1);
-  }
+
+  const headerLabel = primary === "masehi"
+    ? `${NAMA_BULAN[gregMonth - 1]} ${gregYear}`
+    : (hijriMonth ? `${NAMA_BULAN_HIJRIAH[hijriMonth - 1]} ${hijriYear} H` : "Memuat...");
 
   return (
     <div style={{ maxWidth: "980px", margin: "0 auto", padding: "2rem 1.5rem" }}>
@@ -52,7 +88,7 @@ export default function KalenderHijriah() {
       <h1 style={{ fontSize: "1.75rem", color: "var(--color-primary-dark)", marginBottom: "0.25rem" }}>
         Kalender Hijriah
       </h1>
-      <p style={{ color: "var(--color-text-secondary)", marginTop: 0, marginBottom: "2rem" }}>
+      <p style={{ color: "var(--color-text-secondary)", marginTop: 0, marginBottom: "1.5rem" }}>
         Kalender Hijriah Global Tunggal (KHGT) -- Model Kongres Turki 2016
       </p>
 
@@ -62,41 +98,31 @@ export default function KalenderHijriah() {
         </div>
       )}
 
+      <DateModeSelector
+        primary={primary}
+        onChangePrimary={setPrimary}
+        gregorianYear={gregYear}
+        hijriYear={hijriYear}
+        onChangeGregorianYear={setGregYear}
+        onChangeHijriYear={setHijriYear}
+      />
+
       <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "1.5rem" }}>
         <section style={sectionStyle}>
           <MonthCalendarGrid
-            year={year}
-            month={month}
+            headerLabel={headerLabel}
             days={days}
-            onPrevMonth={goPrevMonth}
-            onNextMonth={goNextMonth}
+            primary={primary}
+            onPrevMonth={goPrev}
+            onNextMonth={goNext}
           />
         </section>
 
         <section style={sectionStyle}>
-          <h2 style={{ fontSize: "1.05rem", marginBottom: "1rem" }}>
-            Pergantian bulan Hijriah {year}
+          <h2 style={{ fontSize: "1.05rem", marginBottom: "1.1rem" }}>
+            Detail puasa bulan ini
           </h2>
-          {tahunCalendar.length === 0 ? (
-            <p style={{ color: "var(--color-text-muted)", fontSize: "0.85rem" }}>Memuat...</p>
-          ) : (
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.85rem" }}>
-              <tbody>
-                {tahunCalendar.map((item) => (
-                  <tr key={item.hijriah}>
-                    <td style={{ padding: "0.5rem 0", borderBottom: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}>
-                      {item.hijriah}
-                    </td>
-                    <td style={{ padding: "0.5rem 0", borderBottom: "1px solid var(--color-border)", textAlign: "right", color: "var(--color-text-secondary)" }}>
-                      {new Date(item.awal_bulan_masehi + "T00:00:00").toLocaleDateString("id-ID", {
-                        day: "numeric", month: "long", year: "numeric",
-                      })}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
+          <FastingDetailList days={days} />
         </section>
       </div>
     </div>

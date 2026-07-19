@@ -2,15 +2,21 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import LocationPicker from "../components/LocationPicker";
 import PrayerTimesTable from "../components/PrayerTimesTable";
+import AyatOfDayCard from "../components/AyatOfDayCard";
 import { useLocation } from "../lib/useLocation";
-import { getPrayerTimesRange, getHijriDate } from "../lib/api";
+import { getPrayerTimesRange, getHijriDate, getAyatOfTheDay } from "../lib/api";
 import { formatTanggalLengkap } from "../lib/tanggal";
 
 export default function Dashboard() {
   const { location, loading: loadingLocation, useCurrentLocation, setManualLocation } = useLocation();
   const [prayerData, setPrayerData] = useState(null);
   const [hijriData, setHijriData] = useState(null);
+  const [ayatHariIni, setAyatHariIni] = useState(null);
   const [error, setError] = useState(null);
+
+  useEffect(() => {
+    getAyatOfTheDay().then(setAyatHariIni).catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (!location) return;
@@ -119,6 +125,8 @@ export default function Dashboard() {
           </h2>
           <PrayerTimesTable data={prayerData} />
         </section>
+
+        <AyatOfDayCard ayat={ayatHariIni} />
       </main>
     </div>
   );

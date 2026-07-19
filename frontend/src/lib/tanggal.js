@@ -3,6 +3,17 @@ export const NAMA_BULAN = [
   "Januari", "Februari", "Maret", "April", "Mei", "Juni",
   "Juli", "Agustus", "September", "Oktober", "November", "Desember",
 ];
+export const NAMA_BULAN_HIJRIAH = [
+  "Muharram", "Safar", "Rabiul Awal", "Rabiul Akhir", "Jumadil Awal",
+  "Jumadil Akhir", "Rajab", "Sya'ban", "Ramadan", "Syawal",
+  "Dzulqaidah", "Dzulhijjah",
+];
+
+export const NAMA_BULAN_HIJRIAH_SINGKAT = [
+  "Muh", "Saf", "R. Awal", "R. Akhir", "J. Awal",
+  "J. Akhir", "Rajab", "Sya'ban", "Ramadan", "Syawal",
+  "Dzulqaidah", "Dzulhijjah",
+];
 
 /** Format lengkap, mis. "Ahad, 12 Juli 2026" */
 export function formatTanggalLengkap(date) {

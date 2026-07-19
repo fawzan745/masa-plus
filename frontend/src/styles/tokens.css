@@ -4,9 +4,9 @@
   --color-primary-dark: #073563;
   --color-primary-light: #E8F0FA;
 
-  /* Aksen emas hangat - untuk highlight (Ayyamul Bidh, streak, dll) */
-  --color-accent: #BA7517;
-  --color-accent-light: #FAEEDA;
+  /* Aksen emas cerah - untuk highlight puasa sunnah, Ayyamul Bidh, dll */
+  --color-accent: #E3A712;
+  --color-accent-light: #FDF3DC;
 
   /* Latar & permukaan - dominan putih bersih */
   --color-bg: #F5F8FC;
