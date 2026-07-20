@@ -1,5 +1,6 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../lib/AuthContext";
+import UserMenu from "./UserMenu";
 
 const NAV_ITEMS = [
   { to: "/", label: "Beranda" },
@@ -62,25 +63,7 @@ export default function AppHeader({ children }) {
 
         {!loading && (
           isLoggedIn ? (
-            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-              <span style={{ color: "white", fontSize: "0.85rem", opacity: 0.9 }}>
-                {user?.full_name || user?.email}
-              </span>
-              <button
-                onClick={handleLogout}
-                style={{
-                  background: "rgba(255,255,255,0.15)",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "999px",
-                  padding: "0.4rem 0.9rem",
-                  fontSize: "0.8rem",
-                  cursor: "pointer",
-                }}
-              >
-                Keluar
-              </button>
-            </div>
+            <UserMenu user={user} onLogout={handleLogout} />
           ) : (
             <Link
               to="/login"

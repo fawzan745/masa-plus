@@ -88,6 +88,26 @@ export async function loginUser({ email, password }) {
   return res.json();
 }
 
+export async function updateProfile(token, { fullName, fotoUrl }) {
+  const body = {};
+  if (fullName !== undefined) body.full_name = fullName;
+  if (fotoUrl !== undefined) body.foto_url = fotoUrl;
+
+  const res = await fetch(`${API_BASE_URL}/auth/me`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || "Gagal memperbarui profil");
+  }
+  return res.json();
+}
+
 export async function getMe(token) {
   const res = await fetch(`${API_BASE_URL}/auth/me`, {
     headers: { Authorization: `Bearer ${token}` },

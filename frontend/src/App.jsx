@@ -5,6 +5,7 @@ import KalenderHijriah from "./pages/KalenderHijriah";
 import DoaHarian from "./pages/DoaHarian";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import AkunEdit from "./pages/AkunEdit";
 import "./styles/tokens.css";
 
 export default function App() {
@@ -17,6 +18,7 @@ export default function App() {
           <Route path="/doa" element={<DoaHarian />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/akun" element={<AkunEdit />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from "react";
-import { loginUser, registerUser, getMe } from "./api";
+import { loginUser, registerUser, getMe, updateProfile } from "./api";
 
 const AuthContext = createContext(null);
 
@@ -48,8 +48,14 @@ export function AuthProvider({ children }) {
     setUser(null);
   }
 
+  async function updateUser(changes) {
+    const updated = await updateProfile(token, changes);
+    setUser(updated);
+    return updated;
+  }
+
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, register, logout, isLoggedIn: !!user }}>
+    <AuthContext.Provider value={{ user, token, loading, login, register, logout, updateUser, isLoggedIn: !!user }}>
       {children}
     </AuthContext.Provider>
   );

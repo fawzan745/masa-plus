@@ -21,6 +21,12 @@ class UserOut(BaseModel):
     id: uuid.UUID
     email: EmailStr
     full_name: str | None = None
+    foto_url: str | None = None
+
+
+class UserUpdate(BaseModel):
+    full_name: str | None = None
+    foto_url: str | None = None  # data URL base64, mis. "data:image/jpeg;base64,..."
 
 
 class Token(BaseModel):
