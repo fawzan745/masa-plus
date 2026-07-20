@@ -1,4 +1,5 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../lib/AuthContext";
 
 const NAV_ITEMS = [
   { to: "/", label: "Beranda" },
@@ -8,6 +9,13 @@ const NAV_ITEMS = [
 
 export default function AppHeader({ children }) {
   const { pathname } = useLocation();
+  const { user, isLoggedIn, logout, loading } = useAuth();
+  const navigate = useNavigate();
+
+  function handleLogout() {
+    logout();
+    navigate("/");
+  }
 
   return (
     <header
@@ -49,7 +57,48 @@ export default function AppHeader({ children }) {
         </nav>
       </div>
 
-      {children}
+      <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+        {children}
+
+        {!loading && (
+          isLoggedIn ? (
+            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+              <span style={{ color: "white", fontSize: "0.85rem", opacity: 0.9 }}>
+                {user?.full_name || user?.email}
+              </span>
+              <button
+                onClick={handleLogout}
+                style={{
+                  background: "rgba(255,255,255,0.15)",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "999px",
+                  padding: "0.4rem 0.9rem",
+                  fontSize: "0.8rem",
+                  cursor: "pointer",
+                }}
+              >
+                Keluar
+              </button>
+            </div>
+          ) : (
+            <Link
+              to="/login"
+              style={{
+                background: "white",
+                color: "var(--color-primary)",
+                textDecoration: "none",
+                borderRadius: "999px",
+                padding: "0.45rem 1rem",
+                fontSize: "0.85rem",
+                fontWeight: 600,
+              }}
+            >
+              Masuk
+            </Link>
+          )
+        )}
+      </div>
     </header>
   );
 }

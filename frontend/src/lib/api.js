@@ -62,6 +62,40 @@ export async function getFastingCalendar(year, month) {
   return res.json();
 }
 
+export async function registerUser({ email, password, fullName }) {
+  const res = await fetch(`${API_BASE_URL}/auth/register`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password, full_name: fullName }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || "Gagal mendaftar");
+  }
+  return res.json();
+}
+
+export async function loginUser({ email, password }) {
+  const res = await fetch(`${API_BASE_URL}/auth/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || "Gagal masuk");
+  }
+  return res.json();
+}
+
+export async function getMe(token) {
+  const res = await fetch(`${API_BASE_URL}/auth/me`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error("Token tidak valid");
+  return res.json();
+}
+
 export async function getHijriYearStart(hijriYear) {
   const url = new URL(`${API_BASE_URL}/hijri-calendar/hijri-year-start`);
   url.searchParams.set("hijri_year", hijriYear);
