@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
-from app.api.routes import health, auth, prayer, hijri, doa, ibadah, tanya_ustadz
+from app.api.routes import health, auth, prayer, hijri, doa, ibadah, tanya_ustadz, quran
 
 app = FastAPI(title=settings.APP_NAME)
 
@@ -26,6 +26,7 @@ app.include_router(hijri.router)
 app.include_router(doa.router)
 app.include_router(ibadah.router)
 app.include_router(tanya_ustadz.router)
+app.include_router(quran.router)
 
 
 @app.get("/")

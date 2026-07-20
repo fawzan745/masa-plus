@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.dependencies import get_current_user
 from app.core.security import hash_password, verify_password, create_access_token
 from app.db.database import get_db
 from app.models.user import User
@@ -35,3 +36,10 @@ async def login(payload: UserLogin, db: AsyncSession = Depends(get_db)):
 
     token = create_access_token(subject=str(user.id))
     return Token(access_token=token)
+
+
+@router.get("/me", response_model=UserOut)
+async def get_me(user: User = Depends(get_current_user)):
+    """Info user yang sedang login, berdasarkan token JWT yang dikirim.
+    Dipakai frontend untuk cek status login begitu halaman dibuka/refresh."""
+    return user

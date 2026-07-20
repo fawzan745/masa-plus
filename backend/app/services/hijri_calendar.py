@@ -33,7 +33,7 @@ from dataclasses import dataclass
 from datetime import date, datetime, timedelta
 
 import ephem
-from hijri_converter import Gregorian
+from hijri_converter import Gregorian, Hijri
 
 ELONGATION_MIN_DEGREES = 8.0
 ALTITUDE_MIN_DEGREES = 5.0
@@ -269,3 +269,49 @@ def gregorian_to_hijri(target_date: date) -> HijriDate:
         day=day_of_month,
         gregorian_month_start=month_start,
     )
+
+
+def get_hijri_month_days(hijri_year: int, hijri_month: int) -> list[date]:
+    """Mengembalikan semua tanggal Masehi yang termasuk dalam 1 bulan
+    Hijriah tertentu (presisi KHGT, bisa melintasi 2 bulan Masehi).
+
+    Caranya: cari perkiraan tanggal awal (dari kalender tabular), lalu
+    dikonfirmasi/dikoreksi dengan hitungan KHGT presisi lewat gregorian_to_hijri().
+    """
+    approx = Hijri(hijri_year, hijri_month, 1).to_gregorian()
+    approx_date = date(approx.year, approx.month, approx.day)
+
+    # Cari tanggal awal bulan yang presisi (KHGT), coba di sekitar perkiraan
+    month_start = None
+    for offset in range(-3, 4):
+        candidate = approx_date + timedelta(days=offset)
+        hijri = gregorian_to_hijri(candidate)
+        if hijri.year == hijri_year and hijri.month == hijri_month:
+            month_start = hijri.gregorian_month_start
+            break
+
+    if month_start is None:
+        # fallback -- pakai perkiraan tabular apa adanya
+        month_start = approx_date
+
+    # Cari awal bulan berikutnya untuk tahu kapan bulan ini berakhir
+    next_month_probe = gregorian_to_hijri(month_start + timedelta(days=32))
+    month_end = next_month_probe.gregorian_month_start - timedelta(days=1)
+
+    days = []
+    d = month_start
+    while d <= month_end:
+        days.append(d)
+        d += timedelta(days=1)
+    return days
+
+
+def approx_gregorian_for_hijri_year(hijri_year: int) -> date:
+    """Perkiraan tanggal Masehi untuk 1 Muharram dari tahun Hijriah tertentu,
+    dipakai KHUSUS untuk navigasi UI kalender (lompat ke tahun pilihan user).
+    Ini pakai kalender tabular (baseline), BUKAN hasil hitungan KHGT presisi
+    -- untuk itu, cukup akurat (+/- 1-2 hari), karena tujuannya cuma
+    mengarahkan tampilan ke bulan yang kira-kira benar.
+    """
+    g = Hijri(hijri_year, 1, 1).to_gregorian()
+    return date(g.year, g.month, g.day)

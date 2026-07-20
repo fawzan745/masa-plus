@@ -33,4 +33,7 @@ class HijriYearCalendarItem(BaseModel):
 class FastingCalendarDay(BaseModel):
     tanggal_masehi: str
     hijriah: str
+    hijri_tanggal: int
+    hijri_bulan: str
+    hijri_tahun: int
     puasa: list[FastingItem]
