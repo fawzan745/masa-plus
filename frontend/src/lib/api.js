@@ -62,6 +62,41 @@ export async function getFastingCalendar(year, month) {
   return res.json();
 }
 
+export async function upsertIbadahLog(token, payload) {
+  const res = await fetch(`${API_BASE_URL}/ibadah-log`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || "Gagal menyimpan catatan ibadah");
+  }
+  return res.json();
+}
+
+export async function getIbadahHarian(token, tanggal) {
+  const url = new URL(`${API_BASE_URL}/ibadah-log/harian`);
+  if (tanggal) url.searchParams.set("tanggal", tanggal);
+
+  const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+  if (!res.ok) throw new Error("Gagal mengambil catatan ibadah harian");
+  return res.json();
+}
+
+export async function getIbadahBulanan(token, year, month) {
+  const url = new URL(`${API_BASE_URL}/ibadah-log/bulanan`);
+  if (year) url.searchParams.set("year", year);
+  if (month) url.searchParams.set("month", month);
+
+  const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+  if (!res.ok) throw new Error("Gagal mengambil ringkasan ibadah bulanan");
+  return res.json();
+}
+
 export async function registerUser({ email, password, fullName }) {
   const res = await fetch(`${API_BASE_URL}/auth/register`, {
     method: "POST",

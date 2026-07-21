@@ -6,6 +6,7 @@ import DoaHarian from "./pages/DoaHarian";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import AkunEdit from "./pages/AkunEdit";
+import IbadahTracking from "./pages/IbadahTracking";
 import "./styles/tokens.css";
 
 export default function App() {
@@ -19,6 +20,7 @@ export default function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/akun" element={<AkunEdit />} />
+          <Route path="/ibadah" element={<IbadahTracking />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
