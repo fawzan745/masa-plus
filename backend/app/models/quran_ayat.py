@@ -26,3 +26,8 @@ class QuranAyat(Base):
 
     # Vektor embedding dari terjemahan (dipakai untuk pencarian semantik)
     embedding: Mapped[list[float]] = mapped_column(Vector(EMBEDDING_DIM))
+
+    # Tafsir Kemenag -- dipakai sebagai konteks tambahan untuk AI (BUKAN
+    # untuk pencarian semantik, karena isinya terlalu panjang & bisa
+    # mengaburkan fokus pencarian dibanding terjemahan yang ringkas)
+    tafsir: Mapped[str | None] = mapped_column(Text, nullable=True)

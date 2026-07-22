@@ -7,6 +7,7 @@ const NAV_ITEMS = [
   { to: "/kalender", label: "Kalender" },
   { to: "/doa", label: "Doa Harian" },
   { to: "/ibadah", label: "Ibadah" },
+  { to: "/tanya-ustadz", label: "Tanya Ustadz" },
 ];
 
 export default function AppHeader({ children }) {

@@ -60,6 +60,38 @@ export async function getFastingCalendar(year, month) {
   return res.json();
 }
 
+export async function askUstadz(token, { pertanyaan, sessionId = null }) {
+  const res = await fetch(`${API_BASE_URL}/tanya-ustadz`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ pertanyaan, session_id: sessionId }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || "Gagal mendapat jawaban dari AI");
+  }
+  return res.json();
+}
+
+export async function getChatSessions(token) {
+  const res = await fetch(`${API_BASE_URL}/tanya-ustadz/sessions`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error("Gagal mengambil riwayat percakapan");
+  return res.json();
+}
+
+export async function getChatSessionHistory(token, sessionId) {
+  const res = await fetch(`${API_BASE_URL}/tanya-ustadz/sessions/${sessionId}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error("Gagal mengambil riwayat percakapan");
+  return res.json();
+}
+
 export async function getSurahList() {
   const res = await fetch(`${API_BASE_URL}/quran/surah-list`);
   if (!res.ok) throw new Error("Gagal mengambil daftar surat");

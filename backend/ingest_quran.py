@@ -39,10 +39,12 @@ async def ingest():
         surah_nama = surah_data["name_latin"]
         teks_arab_dict = surah_data["text"]
         terjemahan_dict = surah_data["translations"]["id"]["text"]
+        tafsir_dict = surah_data.get("tafsir", {}).get("id", {}).get("kemenag", {}).get("text", {})
 
         for ayat_num_str, teks_arab in teks_arab_dict.items():
             ayat_num = int(ayat_num_str)
             terjemahan = terjemahan_dict[ayat_num_str]
+            tafsir = tafsir_dict.get(ayat_num_str)
 
             all_ayat.append({
                 "surah_nomor": surah_num,
@@ -50,6 +52,7 @@ async def ingest():
                 "ayat_nomor": ayat_num,
                 "teks_arab": teks_arab,
                 "terjemahan": terjemahan,
+                "tafsir": tafsir,
             })
 
     print(f"Total {len(all_ayat)} ayat ditemukan. Mulai generate embedding...")
@@ -74,6 +77,7 @@ async def ingest():
                     teks_arab=item["teks_arab"],
                     teks_latin=None,
                     terjemahan=item["terjemahan"],
+                    tafsir=item["tafsir"],
                     embedding=embedding,
                 )
                 session.add(ayat)

@@ -7,6 +7,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import AkunEdit from "./pages/AkunEdit";
 import IbadahTracking from "./pages/IbadahTracking";
+import TanyaUstadz from "./pages/TanyaUstadz";
 import "./styles/tokens.css";
 
 export default function App() {
@@ -21,6 +22,7 @@ export default function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/akun" element={<AkunEdit />} />
           <Route path="/ibadah" element={<IbadahTracking />} />
+          <Route path="/tanya-ustadz" element={<TanyaUstadz />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

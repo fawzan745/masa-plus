@@ -20,6 +20,21 @@ router = APIRouter(prefix="/tanya-ustadz", tags=["tanya-ustadz-ai"])
 
 MAX_RIWAYAT_PESAN = 6  # jumlah pesan terakhir yang disertakan sebagai konteks percakapan
 
+def _potong_tafsir(tafsir: str | None, max_chars: int = 700) -> str:
+    """Ambil beberapa kalimat awal tafsir saja -- tafsir lengkap per ayat
+    bisa ribuan kata, terlalu panjang untuk dikirim ke model lokal (bikin
+    lambat & prompt kebesaran). Dipotong di batas kalimat, bukan tengah kata."""
+    if not tafsir:
+        return ""
+    if len(tafsir) <= max_chars:
+        return tafsir
+    potongan = tafsir[:max_chars]
+    batas_kalimat = potongan.rfind(". ")
+    if batas_kalimat > max_chars * 0.5:  # jangan kepotong terlalu pendek
+        potongan = potongan[:batas_kalimat + 1]
+    return potongan.strip() + "..."
+
+
 SYSTEM_PROMPT = """Kamu adalah asisten yang membantu mencarikan ayat Al-Quran yang relevan \
 dengan pertanyaan pengguna, KHUSUS untuk aplikasi Muslim berbasis Muhammadiyah.
 
@@ -33,11 +48,15 @@ katakan dengan jujur bahwa kamu tidak menemukan ayat yang relevan, JANGAN mengar
 4. Untuk pertanyaan tentang hukum fiqih yang kompleks, kontroversial, atau berkaitan dengan \
 keputusan penting (nikah, waris, muamalah, dll), SELALU sarankan pengguna berkonsultasi \
 langsung ke ustadz atau Majelis Tarjih Muhammadiyah -- jangan berikan kesimpulan hukum sendiri.
-5. Jawab dengan bahasa Indonesia yang sopan, hangat, dan mudah dipahami.
-6. Kamu boleh mengingat konteks percakapan sebelumnya dalam sesi yang sama (misal kalau \
+5. Kalau ada "Tafsir Kemenag" di konteks, PAKAI itu untuk memahami makna ayat dengan benar \
+sebelum menjawab -- ayat Al-Quran seringkali butuh konteks penjelasan ulama supaya tidak \
+disalahpahami secara harfiah oleh orang awam. Tapi tetap jangan menambah klaim di luar apa \
+yang disampaikan tafsir tersebut.
+6. Jawab dengan bahasa Indonesia yang sopan, hangat, dan mudah dipahami.
+7. Kamu boleh mengingat konteks percakapan sebelumnya dalam sesi yang sama (misal kalau \
 pengguna bertanya "kalau begitu bagaimana dengan...", itu melanjutkan topik sebelumnya), \
 TAPI aturan 1-4 di atas tetap berlaku untuk setiap jawaban baru.
-7. Jangan menyebutkan nomor ayat di dalam teks jawabanmu -- itu ditampilkan terpisah oleh sistem."""
+8. Jangan menyebutkan nomor ayat di dalam teks jawabanmu -- itu ditampilkan terpisah oleh sistem."""
 
 
 @router.post("", response_model=TanyaUstadzResponse)
@@ -57,17 +76,23 @@ async def tanya_ustadz(
     )
     riwayat = list(riwayat_result.scalars().all())[-MAX_RIWAYAT_PESAN:]
 
-    # Cari ayat relevan untuk PERTANYAAN TERBARU (bukan seluruh riwayat)
-    ayat_list = await search_relevant_ayat(payload.pertanyaan, db, top_k=5)
+    # Cari ayat relevan untuk PERTANYAAN TERBARU (bukan seluruh riwayat).
+    # top_k lebih kecil = konteks lebih pendek = respons lebih cepat,
+    # tapi risiko ayat relevan yang terlewat juga sedikit lebih tinggi.
+    ayat_list = await search_relevant_ayat(payload.pertanyaan, db, top_k=3)
 
     if not ayat_list:
         jawaban_text = "Maaf, saya tidak menemukan ayat Al-Quran yang relevan dengan pertanyaan ini."
         rujukan = []
     else:
-        konteks = "\n\n".join(
-            f"QS. {a.surah_nama} ayat {a.ayat_nomor}: \"{a.terjemahan}\""
-            for a in ayat_list
-        )
+        konteks_parts = []
+        for a in ayat_list:
+            bagian = f'QS. {a.surah_nama} ayat {a.ayat_nomor}: "{a.terjemahan}"'
+            tafsir_potongan = _potong_tafsir(a.tafsir)
+            if tafsir_potongan:
+                bagian += f"\nTafsir Kemenag: {tafsir_potongan}"
+            konteks_parts.append(bagian)
+        konteks = "\n\n".join(konteks_parts)
 
         pertanyaan_dengan_konteks = f"""Konteks (ayat-ayat Al-Quran yang relevan untuk pertanyaan ini):
 {konteks}
