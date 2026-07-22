@@ -1,4 +1,4 @@
-import { formatTanggalSingkat } from "../lib/tanggal";
+import { formatTanggalSingkat, todayIsoLocal } from "../lib/tanggal";
 
 const KOLOM = [
   { key: "subuh", label: "Subuh" },
@@ -10,8 +10,7 @@ const KOLOM = [
 ];
 
 function isHariIni(isoDate) {
-  const today = new Date().toISOString().slice(0, 10);
-  return isoDate === today;
+  return isoDate === todayIsoLocal();
 }
 
 export default function PrayerTimesTable({ data }) {

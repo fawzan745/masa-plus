@@ -1,4 +1,4 @@
-import { NAMA_HARI, NAMA_BULAN, NAMA_BULAN_HIJRIAH } from "../lib/tanggal";
+import { NAMA_HARI, NAMA_BULAN, NAMA_BULAN_HIJRIAH, todayIsoLocal } from "../lib/tanggal";
 
 const JENIS_DOT = {
   wajib: "var(--color-primary)",
@@ -7,7 +7,7 @@ const JENIS_DOT = {
 };
 
 function isHariIni(isoDate) {
-  return isoDate === new Date().toISOString().slice(0, 10);
+  return isoDate === todayIsoLocal();
 }
 
 export default function MonthCalendarGrid({ headerLabel, days, primary = "masehi", onPrevMonth, onNextMonth }) {

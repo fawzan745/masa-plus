@@ -7,9 +7,24 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.database import get_db
 from app.models.quran_ayat import QuranAyat
-from app.schemas.quran import AyatOfDayResponse
+from app.schemas.quran import AyatOfDayResponse, SurahInfo
 
 router = APIRouter(prefix="/quran", tags=["quran"])
+
+
+@router.get("/surah-list", response_model=list[SurahInfo])
+async def get_surah_list(db: AsyncSession = Depends(get_db)):
+    """Daftar 114 surat beserta jumlah ayatnya -- dipakai untuk dropdown
+    pilih surat di fitur tilawah & hafalan."""
+    result = await db.execute(
+        select(QuranAyat.surah_nomor, QuranAyat.surah_nama, func.count(QuranAyat.id))
+        .group_by(QuranAyat.surah_nomor, QuranAyat.surah_nama)
+        .order_by(QuranAyat.surah_nomor)
+    )
+    return [
+        SurahInfo(nomor=nomor, nama=nama, jumlah_ayat=jumlah)
+        for nomor, nama, jumlah in result.all()
+    ]
 
 
 @router.get("/ayat-of-the-day", response_model=AyatOfDayResponse)

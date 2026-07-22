@@ -1,3 +1,5 @@
+import { addDaysIso, todayIsoLocal } from "./tanggal";
+
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 export async function checkBackendHealth() {
@@ -22,11 +24,7 @@ export async function getPrayerTimes({ latitude, longitude, timezoneOffset = 7, 
 }
 
 export async function getPrayerTimesRange({ latitude, longitude, timezoneOffset = 7, days = 7 }) {
-  const dates = Array.from({ length: days }, (_, i) => {
-    const d = new Date();
-    d.setDate(d.getDate() + i);
-    return d.toISOString().slice(0, 10);
-  });
+  const dates = Array.from({ length: days }, (_, i) => addDaysIso(todayIsoLocal(), i));
 
   const results = await Promise.all(
     dates.map((targetDate) => getPrayerTimes({ latitude, longitude, timezoneOffset, targetDate }))
@@ -59,6 +57,12 @@ export async function getFastingCalendar(year, month) {
 
   const res = await fetch(url);
   if (!res.ok) throw new Error("Gagal mengambil kalender puasa");
+  return res.json();
+}
+
+export async function getSurahList() {
+  const res = await fetch(`${API_BASE_URL}/quran/surah-list`);
+  if (!res.ok) throw new Error("Gagal mengambil daftar surat");
   return res.json();
 }
 
